@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.concurrent.TimeUnit;
@@ -18,7 +19,7 @@ public class ADLRecorderService {
 		while (true) {
 			sendInformations();
 			try {
-				TimeUnit.MINUTES.sleep(2);
+				TimeUnit.SECONDS.sleep(2);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -35,14 +36,14 @@ public class ADLRecorderService {
 			con.setRequestProperty("Content-Type", "application/json; utf-8");
 			con.setRequestProperty("Accept", "application/json");
 			con.setDoOutput(true);
-			System.out.println("Sende:");
+			System.out.println("Try to send:");
 			try (OutputStream os = con.getOutputStream()) {
 				String json = car.getAsJson();
 				System.out.println(json);
 				byte[] input = json.getBytes("utf-8");
 				os.write(input, 0, input.length);
 			}
-			System.out.println("Erhalte:");
+			System.out.println("Answer:");
 			try (BufferedReader br = new BufferedReader(new InputStreamReader(con.getInputStream(), "utf-8"))) {
 				StringBuilder response = new StringBuilder();
 				String responseLine = null;
@@ -51,9 +52,11 @@ public class ADLRecorderService {
 				}
 				System.out.println(response.toString());
 			}
+		} catch (ConnectException e) {
+			// TODO Logger einbauen.
+			System.out.println("Backend not Reached");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-
 	}
 }
